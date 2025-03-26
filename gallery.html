@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diskultura - Галерея</title>
+    <meta name="description" content="Галерея выполненных работ на оборудовании Diskultura. Познакомьтесь с нашими проектами в Самаре!">
+    <meta name="keywords" content="галерея, покраска дисков, оборудование Diskultura, Самара">
+    <link rel="icon" href="https://raw.githubusercontent.com/Vkadivostok/diskobr/main/foto/favikon.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Orbitron', sans-serif; min-height: 100vh; position: relative; overflow-x: hidden; background: linear-gradient(135deg, #0a0a0a, #1c2526); color: #00d4ff; }
+        canvas#particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        header { background-color: #1c2526; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); width: 100%; max-width: 1200px; margin: 0 auto; }
+        .logo { display: flex; align-items: center; }
+        .logo canvas { height: 60px; width: 60px; border-radius: 15px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); margin-right: 10px; }
+        .logo span { font-size: 24px; font-weight: 700; color: #00d4ff; }
+        .contacts { font-size: 14px; text-align: right; }
+        .contacts p { margin: 2px 0; }
+        .contacts a { color: #00d4ff; text-decoration: none; transition: color 0.3s ease; }
+        .contacts a:hover { color: #ff0066; }
+        nav a { color: #00d4ff; text-decoration: none; margin: 0 15px; font-size: 16px; font-weight: 500; transition: color 0.3s ease; }
+        nav a:hover { color: #ff0066; }
+        h1 { text-align: center; margin: 40px 0; font-size: clamp(1.5rem, 5vw, 3rem); animation: pulseGlow 2s infinite; }
+        .gallery { position: relative; width: 90%; max-width: 1000px; margin: 40px auto; overflow: hidden; background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 20px; }
+        .slides { display: flex; transition: transform 0.5s ease; }
+        .slide { flex: 0 0 100%; max-width: 100%; text-align: center; }
+        .slide img { width: 100%; max-width: 800px; height: auto; object-fit: cover; border: 2px solid #00d4ff; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
+        .gallery .prev, .gallery .next { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.7); color: #fff; border: none; font-size: 2rem; padding: 15px; cursor: pointer; transition: background 0.3s; border-radius: 50%; }
+        .gallery .prev:hover, .gallery .next:hover { background: #ff0066; }
+        .gallery .prev { left: 20px; }
+        .gallery .next { right: 20px; }
+        .thumbnails { display: flex; justify-content: center; gap: 10px; max-width: 1000px; margin: 20px auto; padding: 10px 20px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; }
+        .thumbnails img { width: 50px; height: 50px; object-fit: cover; border: 2px solid #00d4ff; border-radius: 4px; cursor: pointer; transition: all 0.3s; opacity: 0.7; }
+        .thumbnails img.active { border-color: #ff0066; transform: scale(1.1); opacity: 1; box-shadow: 0 0 10px #ff0066; }
+        .thumbnails img:hover { opacity: 1; transform: scale(1.05); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.95); }
+        .modal.active { display: flex; animation: fadeIn 0.3s; }
+        .modal-container { position: relative; width: 90%; max-width: 1200px; max-height: 85vh; overflow: hidden; border-radius: 12px; background: #1c2526; padding: 20px; box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+        .modal img { width: 100%; height: auto; transform-origin: center; transition: transform 0.2s; border-radius: 8px; }
+        .modal .spinner { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; border: 4px solid #ff0066; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; transform: translate(-50%, -50%); }
+        .modal .close, .modal .prev, .modal .next { position: absolute; background: rgba(0, 0, 0, 0.7); color: #fff; border: none; font-size: 2rem; padding: 15px; cursor: pointer; transition: background 0.3s; border-radius: 50%; }
+        .modal .close:hover, .modal .prev:hover, .modal .next:hover { background: #ff0066; }
+        .modal .close { top: 20px; right: 20px; }
+        .modal .prev { left: 20px; top: 50%; transform: translateY(-50%); }
+        .modal .next { right: 20px; top: 50%; transform: translateY(-50%); }
+        .error-placeholder { color: #ff0066; text-align: center; padding: 20px; font-size: 1.2rem; }
+        footer { background: #1c2526; color: #00d4ff; text-align: center; padding: 20px; width: 100%; max-width: 1200px; margin: 40px auto 0; border-radius: 12px 12px 0 0; }
+        footer nav { margin: 10px 0; }
+        footer a { color: #00d4ff; text-decoration: none; margin: 0 15px; transition: color 0.3s ease; }
+        footer a:hover { color: #ff0066; }
+        footer p { margin: 5px 0; }
+        @keyframes pulseGlow { 0%, 100% { text-shadow: 0 0 5px #00d4ff; } 50% { text-shadow: 0 0 20px #ff0066; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        @media (max-width: 768px) { 
+            header { flex-direction: column; text-align: center; }
+            .contacts { margin: 10px 0; }
+            nav a { margin: 0 8px; font-size: 14px; }
+            .slide img { max-width: 600px; } 
+            .thumbnails img { width: 40px; height: 40px; } 
+            .gallery { padding: 15px; } 
+        }
+        @media (max-width: 480px) { 
+            .slide img { max-width: 400px; } 
+            .thumbnails img { width: 30px; height: 30px; } 
+            .modal { width: 95%; } 
+            .gallery { padding: 10px; } 
+            .logo span { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles"></canvas>
+    <header>
+        <div class="logo">
+            <canvas id="logoCanvas"></canvas>
+            <span>Diskultura</span>
+        </div>
+        <div class="contacts">
+            <p><a href="tel:+79379969616">+7 (937) 996 96 16</a></p>
+            <p>г. Самара, ул. Юзовская, 3А</p>
+            <p><a href="https://vk.com/samarapokraskadiskov" target="_blank">Мы ВКонтакте</a></p>
+        </div>
+        <nav>
+            <a href="index.html#products">Продукция</a>
+            <a href="index.html#about">О компании</a>
+            <a href="index.html#contact">Контакты</a>
+            <a href="gallery.html">Галерея</a>
+        </nav>
+    </header>
+
+    <h1>Галерея</h1>
+    <div class="gallery">
+        <div class="slides"></div>
+        <button class="prev" aria-label="Предыдущий слайд"><</button>
+        <button class="next" aria-label="Следующий слайд">></button>
+    </div>
+    <div class="thumbnails"></div>
+    <div class="modal" role="dialog" aria-label="Просмотр изображения">
+        <div class="modal-container" style="animation: slideUp 0.4s">
+            <button class="close" aria-label="Закрыть">×</button>
+            <button class="prev" aria-label="Предыдущее изображение"><</button>
+            <button class="next" aria-label="Следующее изображение">></button>
+            <div class="spinner"></div>
+            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Изображение">
+        </div>
+    </div>
+    <footer>
+        <nav>
+            <a href="index.html#products">Продукция</a>
+            <a href="index.html#about">О компании</a>
+            <a href="index.html#contact">Контакты</a>
+            <a href="gallery.html">Галерея</a>
+        </nav>
+        <p><a href="tel:+79379969616">+7 (937) 996 96 16</a></p>
+        <p>г. Самара, ул. Юзовская, 3А</p>
+        <p><a href="https://vk.com/samarapokraskadiskov" target="_blank">Мы ВКонтакте</a></p>
+        <p>© 2025 Diskultura. Все права защищены.</p>
+    </footer>
+
+    <script>
+    // Анимация логотипа в canvas
+    const canvas = document.getElementById('logoCanvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = 'https://raw.githubusercontent.com/Vkadivostok/diskobr/main/foto/favikon.png';
+
+    img.onload = () => {
+        canvas.width = img.width * 1.5;
+        canvas.height = img.height * 1.5;
+        animate();
+    };
+
+    img.onerror = () => {
+        ctx.fillStyle = 'red';
+        ctx.font = '16px Orbitron';
+        ctx.textAlign = 'center';
+        ctx.fillText('Ошибка загрузки изображения', canvas.width / 2, canvas.height / 2);
+    };
+
+    let scale = 1;
+    let scaleDirection = 1;
+    const speed = 0.015; // Уменьшено на 25% с 0.02
+    let rotation = 0;
+    const rotationSpeed = 0.015; // Уменьшено на 25% с 0.02
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        scale += speed * scaleDirection;
+        if (scale >= 1.2) scaleDirection = -1;
+        if (scale <= 0.8) scaleDirection = 1;
+
+        rotation += rotationSpeed;
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(rotation);
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        ctx.restore();
+
+        requestAnimationFrame(animate);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const repoUrl = 'https://api.github.com/repos/Vkadivostok/diskobr/contents/fotorab';
+        let images = [], currentIndex = 0, autoplayInterval;
+        const canvasParticles = document.getElementById('particles'), ctxParticles = canvasParticles.getContext('2d');
+        canvasParticles.width = window.innerWidth; canvasParticles.height = window.innerHeight;
+        const particles = Array.from({ length: 50 }, () => ({
+            x: Math.random() * canvasParticles.width, y: Math.random() * canvasParticles.height,
+            size: Math.random() * 5 + 1, speedX: Math.random() - 0.5, speedY: Math.random() - 0.5
+        }));
+        ctxParticles.fillStyle = '#00d4ff';
+        const animateParticles = () => {
+            ctxParticles.clearRect(0, 0, canvasParticles.width, canvasParticles.height);
+            particles.forEach(p => {
+                p.x += p.speedX; p.y += p.speedY;
+                if (p.x < 0 || p.x > canvasParticles.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvasParticles.height) p.speedY *= -1;
+                ctxParticles.beginPath(); ctxParticles.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctxParticles.fill();
+            });
+            requestAnimationFrame(animateParticles);
+        };
+        animateParticles();
+        window.addEventListener('resize', () => { canvasParticles.width = window.innerWidth; canvasParticles.height = window.innerHeight; });
+        fetch(repoUrl).then(res => res.json()).then(files => {
+            images = files.filter(f => f.type === 'file').map(f => ({ url: f.download_url, name: f.name }));
+            initSlides(); initThumbnails(); startAutoplay();
+        }).catch(err => {
+            document.querySelector('.slides').innerHTML = '<div class="error-placeholder">Ошибка загрузки изображений. Попробуйте позже.</div>';
+            console.error('Fetch error:', err);
+        });
+        const slides = document.querySelector('.slides');
+        const prevBtn = document.querySelector('.gallery .prev');
+        const nextBtn = document.querySelector('.gallery .next');
+        const updateSlides = () => {
+            slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+            slides.querySelectorAll('.slide img').forEach((img, i) => {
+                img.style.opacity = i === currentIndex ? '1' : '0.5';
+            });
+        };
+        const initSlides = () => {
+            images.forEach(img => {
+                slides.innerHTML += `<div class="slide"><img src="${img.url}" alt="${img.name}" loading="lazy"></div>`;
+            });
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                updateSlides(); updateThumbnails(); resetAutoplay();
+            });
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % images.length;
+                updateSlides(); updateThumbnails(); resetAutoplay();
+            });
+            slides.addEventListener('mouseenter', stopAutoplay);
+            slides.addEventListener('mouseleave', startAutoplay);
+            updateSlides();
+        };
+        const startAutoplay = () => {
+            autoplayInterval = setInterval(() => {
+                currentIndex = (currentIndex + 1) % images.length;
+                updateSlides(); updateThumbnails();
+            }, 4000);
+        };
+        const stopAutoplay = () => clearInterval(autoplayInterval);
+        const resetAutoplay = () => { stopAutoplay(); startAutoplay(); };
+        const thumbnails = document.querySelector('.thumbnails');
+        const initThumbnails = () => {
+            images.forEach((img, i) => {
+                const thumb = document.createElement('img');
+                thumb.src = img.url; thumb.alt = img.name; thumb.loading = 'lazy';
+                thumb.addEventListener('click', () => { 
+                    currentIndex = i; 
+                    updateSlides(); 
+                    updateThumbnails(); 
+                    openModal(i); 
+                    resetAutoplay(); 
+                });
+                thumbnails.appendChild(thumb);
+            });
+            thumbnails.children[0].classList.add('active');
+        };
+        const updateThumbnails = () => {
+            Array.from(thumbnails.children).forEach((thumb, i) => thumb.classList.toggle('active', i === currentIndex));
+        };
+        const modal = document.querySelector('.modal'), modalImg = modal.querySelector('img'), spinner = modal.querySelector('.spinner');
+        const close = modal.querySelector('.close'), prev = modal.querySelector('.prev'), next = modal.querySelector('.next');
+        let scaleModal = 1, touchStartX = 0;
+        const openModal = (index) => {
+            currentIndex = index; modal.classList.add('active'); spinner.style.display = 'block';
+            modalImg.src = images[index].url; modalImg.alt = images[index].name; scaleModal = 1; modalImg.style.transform = 'scale(1)';
+            modalImg.onload = () => spinner.style.display = 'none';
+            modalImg.onerror = () => { 
+                spinner.style.display = 'none'; 
+                modalImg.alt = 'Ошибка загрузки'; 
+                setTimeout(() => modal.classList.remove('active'), 2000); 
+            };
+            stopAutoplay();
+        };
+        const updateModal = () => {
+            spinner.style.display = 'block'; 
+            modalImg.src = images[currentIndex].url; 
+            modalImg.alt = images[currentIndex].name;
+            modalImg.onload = () => spinner.style.display = 'none';
+        };
+        close.addEventListener('click', () => { modal.classList.remove('active'); startAutoplay(); });
+        modal.addEventListener('click', e => { if (e.target === modal) { modal.classList.remove('active'); startAutoplay(); } });
+        prev.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateModal(); updateSlides(); updateThumbnails(); resetAutoplay();
+        });
+        next.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % images.length;
+            updateModal(); updateSlides(); updateThumbnails(); resetAutoplay();
+        });
+        modalImg.addEventListener('wheel', e => {
+            e.preventDefault(); 
+            scaleModal = Math.min(Math.max(scaleModal + (e.deltaY > 0 ? -0.1 : 0.1), 1), 4); 
+            modalImg.style.transform = `scale(${scaleModal})`;
+        });
+        modal.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+        modal.addEventListener('touchend', e => {
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+            if (Math.abs(deltaX) > 50) {
+                if (deltaX > 0) { currentIndex = (currentIndex - 1 + images.length) % images.length; }
+                else { currentIndex = (currentIndex + 1) % images.length; }
+                updateModal(); updateSlides(); updateThumbnails(); resetAutoplay();
+            }
+        });
+    });
+    </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9264e332f97906f4',t:'MTc0Mjk3MzY0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
